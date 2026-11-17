@@ -1,1 +1,1025 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Musical Christmas Lights - Club Legislativo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
+    body {
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #161616;
+      color: #c5a880;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    /* Pantalla inicial de selección */
+    #overlay {
+      position: absolute;
+      z-index: 20;
+      text-align: center;
+      padding: clamp(18px, 4vw, 28px);
+      background: rgba(22, 22, 22, 0.94);
+      backdrop-filter: blur(8px);
+      border-radius: 18px;
+      border: 1px solid #c5a880;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
+      width: min(92vw, 380px);
+    }
+
+    .center-img {
+      width: clamp(95px, 28vw, 130px);
+      height: auto;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 12px rgba(197, 168, 128, 0.45));
+    }
+
+    label, .btn {
+      display: inline-block;
+      background-color: #161616;
+      padding: clamp(11px, 3vw, 14px) 16px;
+      border-radius: 10px;
+      color: #c5a880;
+      border: 1px solid #c5a880;
+      width: 100%;
+      margin-bottom: 10px;
+      line-height: 1.4;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: clamp(0.88rem, 3.5vw, 0.98rem);
+    }
+
+    label:hover, .btn:hover, label:active, .btn:active {
+      background-color: #c5a880;
+      color: #161616;
+      box-shadow: 0 0 15px rgba(197, 168, 128, 0.4);
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .title {
+      color: #e0c39c;
+      font-weight: bold;
+      font-size: clamp(1.1rem, 4.5vw, 1.3rem);
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .greeting {
+      margin-top: 14px;
+      font-size: clamp(0.82rem, 3.4vw, 0.92rem);
+      color: #d4af37;
+      line-height: 1.4;
+      font-style: italic;
+      border-top: 1px solid rgba(197, 168, 128, 0.3);
+      padding-top: 12px;
+      font-family: 'Georgia', serif;
+    }
+
+    .text-loading {
+      font-size: clamp(1.2rem, 5vw, 1.6rem);
+      color: #c5a880;
+      animation: pulse 1.2s infinite alternate;
+    }
+
+    .error-msg {
+      color: #ff6b6b;
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+
+    /* ESTRELLA DE BELÉN EN EL CIELO */
+    #star-of-bethlehem {
+      position: fixed;
+      top: 7vh;
+      left: 14vw;
+      width: clamp(90px, 16vw, 150px);
+      height: clamp(90px, 16vw, 150px);
+      z-index: 13;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: starTwinkle 3.5s ease-in-out infinite alternate;
+    }
+
+    #star-of-bethlehem.active {
+      display: flex;
+    }
+
+    .bethlehem-core {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle, #ffffff 15%, #fff6b3 55%, rgba(255, 215, 0, 0) 100%);
+      border-radius: 50%;
+      box-shadow:
+        0 0 18px 6px #ffffff,
+        0 0 40px 14px rgba(255, 230, 128, 0.85),
+        0 0 85px 28px rgba(212, 175, 55, 0.45);
+    }
+
+    /* Rayos principales de 4 puntas (vertical más largo hacia abajo como estrella guía) */
+    .bethlehem-ray-v {
+      position: absolute;
+      top: -45px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      height: 135px;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 250, 210, 0.9) 35%,
+        #ffffff 40%,
+        rgba(255, 240, 160, 0.75) 65%,
+        rgba(255, 215, 0, 0) 100%
+      );
+      border-radius: 50%;
+      filter: blur(0.6px);
+    }
+
+    .bethlehem-ray-h {
+      position: absolute;
+      top: 50%;
+      left: -48px;
+      transform: translateY(-50%);
+      width: 112px;
+      height: 3px;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 250, 210, 0.9) 40%,
+        #ffffff 50%,
+        rgba(255, 250, 210, 0.9) 60%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      border-radius: 50%;
+      filter: blur(0.6px);
+    }
+
+    /* Rayos diagonales secundarios */
+    .bethlehem-ray-d1, .bethlehem-ray-d2 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 58px;
+      height: 2px;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 245, 190, 0.85) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      border-radius: 50%;
+    }
+
+    .bethlehem-ray-d1 {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .bethlehem-ray-d2 {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    /* Luna con resplandor en el fondo superior derecho/centro */
+    #moon-container {
+      position: fixed;
+      top: 6vh;
+      right: 15vw;
+      z-index: 12;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #moon-container.active {
+      display: flex;
+    }
+
+    .moon-img {
+      width: clamp(170px, 20vw, 180px);
+      height: auto;
+      filter: drop-shadow(0 0 25px rgba(255, 255, 230, 0.65)) 
+              drop-shadow(0 0 60px rgba(180, 210, 255, 0.3));
+      animation: moonGlow 4s ease-in-out infinite alternate;
+    }
+
+    /* Contenedor flotante en primer plano para la esfera y el texto girando alrededor */
+    #hud-festive {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #hud-festive.active {
+      display: flex;
+      animation: fadeIn 1.4s ease forwards;
+    }
+
+    .orbit-wrapper {
+      position: relative;
+      width: clamp(270px, 68vw, 370px);
+      height: clamp(270px, 68vw, 370px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    .hud-ornament {
+      width: clamp(135px, 34vw, 185px);
+      height: auto;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.85))
+              drop-shadow(0 0 35px rgba(255, 230, 140, 0.4));
+    }
+
+    .orbit-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      animation: spinOrbit 18s linear infinite;
+      overflow: visible;
+    }
+
+    .orbit-text {
+      fill: #fffaed;
+      font-family: 'Georgia', serif;
+      font-size: 13.5px;
+      font-weight: bold;
+      letter-spacing: 2.1px;
+      text-transform: uppercase;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.95))
+              drop-shadow(0 0 8px rgba(212, 175, 55, 0.9));
+    }
+
+    /* Trineo pasando por delante de la luna */
+    #sleigh-container {
+      position: fixed;
+      top: 14vh;
+      left: 0;
+      z-index: 16;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      animation: flySleigh 15s linear infinite;
+    }
+
+    #sleigh-container.active {
+      display: flex;
+    }
+
+    /* Cola luminosa tipo cometa detrás del trineo */
+    .comet-tail {
+      width: clamp(95px, 22vw, 180px);
+      height: clamp(12px, 2.5vw, 20px);
+      margin-right: -28px;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 223, 100, 0) 0%,
+        rgba(255, 223, 100, 0.18) 45%,
+        rgba(255, 244, 180, 0.65) 85%,
+        rgba(255, 255, 255, 0.95) 100%
+      );
+      border-radius: 50% 0 0 50%;
+      filter: blur(3px);
+      box-shadow: 0 0 14px rgba(255, 220, 110, 0.55);
+      transform-origin: right center;
+      animation: tailPulse 1.6s ease-in-out infinite alternate;
+    }
+
+    .sleigh-img {
+      width: clamp(85px, 18vw, 135px);
+      height: auto;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 10px rgba(255, 235, 160, 0.85));
+    }
+
+    /* Estrellitas dinámicas que deja el trineo al pasar */
+    .trail-star {
+      position: fixed;
+      pointer-events: none;
+      z-index: 15;
+      color: #fff6c2;
+      text-shadow: 0 0 6px #ffd700, 0 0 12px #ffffff;
+      animation: starFade 1.5s ease-out forwards;
+      user-select: none;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes spinOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes starTwinkle {
+      0% {
+        transform: scale(0.9) rotate(-2deg);
+        opacity: 0.85;
+      }
+      100% {
+        transform: scale(1.12) rotate(2deg);
+        opacity: 1;
+      }
+    }
+
+    @keyframes moonGlow {
+      0% { filter: drop-shadow(0 0 20px rgba(255, 255, 230, 0.55)) drop-shadow(0 0 50px rgba(180, 210, 255, 0.25)); }
+      100% { filter: drop-shadow(0 0 32px rgba(255, 255, 245, 0.85)) drop-shadow(0 0 75px rgba(200, 225, 255, 0.45)); }
+    }
+
+    @keyframes flySleigh {
+      0% {
+        transform: translateX(-280px) translateY(0px);
+      }
+      25% {
+        transform: translateX(25vw) translateY(-4px);
+      }
+      50% {
+        transform: translateX(52vw) translateY(-8px);
+      }
+      75% {
+        transform: translateX(78vw) translateY(-2px);
+      }
+      100% {
+        transform: translateX(calc(100vw + 120px)) translateY(0px);
+      }
+    }
+
+    @keyframes tailPulse {
+      0% { opacity: 0.75; transform: scaleX(0.92); }
+      100% { opacity: 1; transform: scaleX(1.06); }
+    }
+
+    @keyframes starFade {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-28px, var(--dy, 18px)) scale(0.15) rotate(160deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Menú inicial -->
+  <div id="overlay">
+    <ul>
+      <li>
+        <img src="https://i.postimg.cc/W3Mn21Dj/Bola-navidena-con-Nacimiento-iluminado-CHICA.png" alt="Adorno Navideño Club Legislativo" class="center-img">
+      </li>
+      <li class="title">🎄 Luces Navideñas Musicales</li>
+      <li>
+        <button class="btn" id="btnPlayDefault" type="button">
+          ▶ Reproducir Canción Navideña
+        </button>
+      </li>
+      <li style="margin: 8px 0; color: #a07676; font-size: 0.82rem; font-weight: bold;">O CARGA TU PROPIO AUDIO</li>
+      <li>
+        <input type="file" id="upload" accept="audio/*" hidden />
+        <label for="upload">📂 Subir archivo MP3 / WAV</label>
+      </li>
+    </ul>
+    <div id="status-msg" class="error-msg"></div>
+    <div class="greeting">
+      Carlos Molina y familia, le desean muy felices fiestas 🥂✨
+    </div>
+  </div>
+
+  <!-- Estrella de Belén brillando en el cielo -->
+  <div id="star-of-bethlehem">
+    <div class="bethlehem-core">
+      <div class="bethlehem-ray-v"></div>
+      <div class="bethlehem-ray-h"></div>
+      <div class="bethlehem-ray-d1"></div>
+      <div class="bethlehem-ray-d2"></div>
+    </div>
+  </div>
+
+  <!-- Luna llena brillante en el cielo -->
+  <div id="moon-container">
+    <img src="https://static.vecteezy.com/system/resources/thumbnails/087/791/537/small/luxurious-golden-2027-numerals-isolated-on-transparent-background-png.png" alt="Luna Llena" class="moon-img">
+  </div>
+
+  <!-- Trineo de Papá Noel con cola de cometa cruzando por delante de la luna -->
+  <div id="sleigh-container">
+    <div class="comet-tail"></div>
+    <img 
+      src="https://i.postimg.cc/MKzkvxcN/papa-noel-trineo-3.png" 
+      alt="Trineo de Papá Noel" 
+      class="sleigh-img"
+    >
+  </div>
+
+  <!-- Esfera navideña con texto girando alrededor -->
+  <div id="hud-festive">
+    <div class="orbit-wrapper">
+      <img 
+        src="https://i.postimg.cc/W3Mn21Dj/Bola-navidena-con-Nacimiento-iluminado-CHICA.png" 
+        alt="Adorno Navideño Club Legislativo" 
+        class="hud-ornament"
+      >
+      <svg class="orbit-svg" viewBox="0 0 300 300">
+        <defs>
+          <path
+            id="circlePath"
+            d="M 150, 150 m -118, 0 a 118,118 0 1,1 236,0 a 118,118 0 1,1 -236,0"
+          />
+        </defs>
+        <text class="orbit-text">
+          <textPath href="#circlePath" startOffset="0%" textLength="735">
+            ✦ FELICES FIESTAS LES DESEA CARLOS MOLINA Y FLIA ✦
+          </textPath>
+        </text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Librerías Three.js y Post-procesado -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+  <script>
+    const { PI, sin, cos } = Math;
+    const TAU = 2 * PI;
+
+    const map = (value, sMin, sMax, dMin, dMax) => {
+      return dMin + ((value - sMin) / (sMax - sMin)) * (dMax - dMin);
+    };
+
+    const range = (n, m = 0) =>
+      Array(n)
+        .fill(m)
+        .map((i, j) => i + j);
+
+    const rand = (max, min = 0) => min + Math.random() * (max - min);
+    const randInt = (max, min = 0) => Math.floor(min + Math.random() * (max - min));
+    const randChoise = (arr) => arr[randInt(arr.length)];
+    const polar = (ang, r = 1) => [r * cos(ang), r * sin(ang)];
+
+    let scene, camera, renderer, analyser, composer;
+    let step = 0;
+    let starInterval = null;
+
+    const uniforms = {
+      time: { type: "f", value: 0.0 },
+      step: { type: "f", value: 0.0 },
+    };
+
+    const params = {
+      exposure: 1,
+      bloomStrength: 0.9,
+      bloomThreshold: 0,
+      bloomRadius: 0.5,
+    };
+
+    const fftSize = 2048;
+    const totalPoints = 4000;
+
+    const listener = new THREE.AudioListener();
+    const audio = new THREE.Audio(listener);
+
+    function createGlowTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gradient.addColorStop(0, 'rgba(255,255,255,1)');
+      gradient.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createSnowflakeTexture(type = 1) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.translate(32, 32);
+
+      if (type === 1) {
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(0, -24);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(0, -14);
+          ctx.lineTo(8, -20);
+          ctx.moveTo(0, -14);
+          ctx.lineTo(-8, -20);
+          ctx.stroke();
+          ctx.rotate(Math.PI / 3);
+        }
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, TAU);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fill();
+      }
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    const sparkTexture = createGlowTexture();
+    const snowTextures = [
+      createSnowflakeTexture(1),
+      createSnowflakeTexture(2),
+      createSnowflakeTexture(1),
+      createSnowflakeTexture(2),
+      createSnowflakeTexture(1)
+    ];
+
+    document.getElementById("upload").addEventListener("change", uploadAudio, false);
+    document.getElementById("btnPlayDefault").addEventListener("click", loadDefaultAudio);
+
+    function resumeAudioContext() {
+      if (listener.context && listener.context.state === "suspended") {
+        listener.context.resume();
+      }
+    }
+
+    function updateCameraForScreen(cam) {
+      const aspect = window.innerWidth / window.innerHeight;
+      if (aspect < 0.8) {
+        cam.position.set(-0.09, -2.2, 34);
+      } else {
+        cam.position.set(-0.09397456774197047, -2.5597086635726947, 24.420789670889008);
+      }
+      cam.rotation.set(0.10443543723052419, -0.003827152981119352, 0.0004011488708739715);
+    }
+
+    /* Generador continuo de estrellitas pequeñas desde la cola del trineo */
+    function startSleighStars() {
+      const sleigh = document.getElementById("sleigh-container");
+      const symbols = ["✦", "✧", "⋆", "✨", "•"];
+
+      if (starInterval) clearInterval(starInterval);
+      starInterval = setInterval(() => {
+        const rect = sleigh.getBoundingClientRect();
+        if (rect.right < -40 || rect.left > window.innerWidth + 40) return;
+
+        for (let i = 0; i < 3; i++) {
+          const star = document.createElement("span");
+          star.className = "trail-star";
+          star.textContent = randChoise(symbols);
+
+          const spawnX = rect.left + rect.width * 0.42 + rand(-18, 12);
+          const spawnY = rect.top + rect.height * 0.55 + rand(-12, 12);
+
+          star.style.left = `${spawnX}px`;
+          star.style.top = `${spawnY}px`;
+          star.style.fontSize = `${rand(7, 14)}px`;
+          star.style.setProperty("--dy", `${rand(-14, 24)}px`);
+
+          document.body.appendChild(star);
+          setTimeout(() => star.remove(), 1500);
+        }
+      }, 90);
+    }
+
+    function init() {
+      const overlay = document.getElementById("overlay");
+      if (overlay) overlay.remove();
+
+      document.getElementById("hud-festive").classList.add("active");
+      document.getElementById("star-of-bethlehem").classList.add("active");
+      document.getElementById("moon-container").classList.add("active");
+      document.getElementById("sleigh-container").classList.add("active");
+      startSleighStars();
+
+      scene = new THREE.Scene();
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        1,
+        1000
+      );
+      updateCameraForScreen(camera);
+
+      const format = renderer.capabilities.isWebGL2
+        ? THREE.RedFormat
+        : THREE.LuminanceFormat;
+
+      uniforms.tAudioData = {
+        value: new THREE.DataTexture(analyser.data, fftSize / 2, 1, format),
+      };
+
+      addPlane(scene, uniforms, 3000);
+      addSnow(scene, uniforms);
+
+      range(10).map((i) => {
+        addTree(scene, uniforms, totalPoints, [20, 0, -20 * i]);
+        addTree(scene, uniforms, totalPoints, [-20, 0, -20 * i]);
+      });
+
+      const renderScene = new THREE.RenderPass(scene, camera);
+
+      const bloomPass = new THREE.UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.5,
+        0.4,
+        0.85
+      );
+      bloomPass.threshold = params.bloomThreshold;
+      bloomPass.strength = params.bloomStrength;
+      bloomPass.radius = params.bloomRadius;
+
+      composer = new THREE.EffectComposer(renderer);
+      composer.addPass(renderScene);
+      composer.addPass(bloomPass);
+
+      addListeners(camera, renderer, composer);
+      animate(0);
+    }
+
+    function animate(time) {
+      analyser.getFrequencyData();
+      uniforms.tAudioData.value.needsUpdate = true;
+      step = (step + 1) % 1000;
+      uniforms.time.value = time;
+      uniforms.step.value = step;
+      composer.render();
+      requestAnimationFrame(animate);
+    }
+
+    function loadDefaultAudio() {
+      resumeAudioContext();
+      const overlay = document.getElementById("overlay");
+      overlay.innerHTML = '<div class="text-loading">Cargando música... 🎄✨</div>';
+
+      //const audioUrl = "https://raw.githack.com/carlosmolina2024/musica-mp3/main/David%20Garrett%20-%20Viva%20La%20Vida.mp3";
+     const audioUrl = "https://raw.githack.com/intelliwebs/mp3/main/Bobby%20Helms%20-%20Jingle%20Bell%20Rock%20(Lyrics).mp3";
+      const loader = new THREE.AudioLoader();
+      loader.setCrossOrigin("anonymous");
+
+      loader.load(
+        audioUrl,
+        function (buffer) {
+          audio.setBuffer(buffer);
+          audio.setLoop(true);
+          audio.play();
+          analyser = new THREE.AudioAnalyser(audio, fftSize);
+          init();
+        },
+        undefined,
+        function (err) {
+          console.error("Error cargando audio:", err);
+          location.reload();
+        }
+      );
+    }
+
+    function uploadAudio(event) {
+      const files = event.target.files;
+      if (!files || !files[0]) return;
+
+      resumeAudioContext();
+      document.getElementById("overlay").innerHTML =
+        '<div class="text-loading">Procesando audio... ✨</div>';
+
+      const reader = new FileReader();
+      reader.onload = function (file) {
+        const arrayBuffer = file.target.result;
+        listener.context.decodeAudioData(arrayBuffer, function (audioBuffer) {
+          audio.setBuffer(audioBuffer);
+          audio.setLoop(true);
+          audio.play();
+          analyser = new THREE.AudioAnalyser(audio, fftSize);
+          init();
+        });
+      };
+      reader.readAsArrayBuffer(files[0]);
+    }
+
+    function addTree(scene, uniforms, totalPoints, treePosition) {
+      const vertexShader = `
+        attribute float mIndex;
+        varying vec3 vColor;
+        varying float opacity;
+        uniform sampler2D tAudioData;
+
+        float norm(float value, float min, float max) {
+          return (value - min) / (max - min);
+        }
+        float lerp(float norm, float min, float max) {
+          return (max - min) * norm + min;
+        }
+        float map(float value, float sourceMin, float sourceMax, float destMin, float destMax) {
+          return lerp(norm(value, sourceMin, sourceMax), destMin, destMax);
+        }
+
+        void main() {
+          vColor = color;
+          vec3 p = position;
+          vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+          float amplitude = texture2D(tAudioData, vec2(mIndex, 0.1)).r;
+          float amplitudeClamped = clamp(amplitude - 0.4, 0.0, 0.6);
+          float sizeMapped = map(amplitudeClamped, 0.0, 0.6, 1.0, 20.0);
+          opacity = map(mvPosition.z, -200.0, 15.0, 0.0, 1.0);
+          gl_PointSize = sizeMapped * (100.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `;
+
+      const fragmentShader = `
+        varying vec3 vColor;
+        varying float opacity;
+        uniform sampler2D pointTexture;
+        void main() {
+          gl_FragColor = vec4(vColor, opacity);
+          gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
+        }
+      `;
+
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          ...uniforms,
+          pointTexture: { value: sparkTexture },
+        },
+        vertexShader,
+        fragmentShader,
+        blending: THREE.AdditiveBlending,
+        depthTest: false,
+        transparent: true,
+        vertexColors: true,
+      });
+
+      const geometry = new THREE.BufferGeometry();
+      const positions = [];
+      const colors = [];
+      const sizes = [];
+      const phases = [];
+      const mIndexs = [];
+
+      const color = new THREE.Color();
+
+      for (let i = 0; i < totalPoints; i++) {
+        const t = Math.random();
+        const y = map(t, 0, 1, -8, 10);
+        const ang = map(t, 0, 1, 0, 6 * TAU) + (TAU / 2) * (i % 2);
+        const [z, x] = polar(ang, map(t, 0, 1, 5, 0));
+
+        const modifier = map(t, 0, 1, 1, 0);
+        positions.push(x + rand(-0.3 * modifier, 0.3 * modifier));
+        positions.push(y + rand(-0.3 * modifier, 0.3 * modifier));
+        positions.push(z + rand(-0.3 * modifier, 0.3 * modifier));
+
+        color.setHSL(map(i, 0, totalPoints, 1.0, 0.0), 1.0, 0.5);
+
+        colors.push(color.r, color.g, color.b);
+        phases.push(rand(1000));
+        sizes.push(1);
+        const mIndex = map(i, 0, totalPoints, 1.0, 0.0);
+        mIndexs.push(mIndex);
+      }
+
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage)
+      );
+      geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+      geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+      geometry.setAttribute("phase", new THREE.Float32BufferAttribute(phases, 1));
+      geometry.setAttribute("mIndex", new THREE.Float32BufferAttribute(mIndexs, 1));
+
+      const tree = new THREE.Points(geometry, shaderMaterial);
+      const [px, py, pz] = treePosition;
+      tree.position.set(px, py, pz);
+
+      scene.add(tree);
+    }
+
+    function addSnow(scene, uniforms) {
+      const vertexShader = `
+        attribute float size;
+        attribute float phase;
+        attribute float phaseSecondary;
+
+        varying vec3 vColor;
+        varying float opacity;
+
+        uniform float time;
+        uniform float step;
+
+        float norm(float value, float min, float max) {
+          return (value - min) / (max - min);
+        }
+        float lerp(float norm, float min, float max) {
+          return (max - min) * norm + min;
+        }
+        float map(float value, float sourceMin, float sourceMax, float destMin, float destMax) {
+          return lerp(norm(value, sourceMin, sourceMax), destMin, destMax);
+        }
+
+        void main() {
+          float t = time * 0.0006;
+          vColor = color;
+          vec3 p = position;
+          p.y = map(mod(phase + step, 1000.0), 0.0, 1000.0, 25.0, -8.0);
+          p.x += sin(t + phase);
+          p.z += sin(t + phaseSecondary);
+          opacity = map(p.z, -150.0, 15.0, 0.0, 1.0);
+          vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = size * (100.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `;
+
+      const fragmentShader = `
+        uniform sampler2D pointTexture;
+        varying vec3 vColor;
+        varying float opacity;
+        void main() {
+          gl_FragColor = vec4(vColor, opacity);
+          gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
+        }
+      `;
+
+      snowTextures.forEach((spriteTexture) => {
+        const totalPoints = 300;
+        const shaderMaterial = new THREE.ShaderMaterial({
+          uniforms: {
+            ...uniforms,
+            pointTexture: { value: spriteTexture },
+          },
+          vertexShader,
+          fragmentShader,
+          blending: THREE.AdditiveBlending,
+          depthTest: false,
+          transparent: true,
+          vertexColors: true,
+        });
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const colors = [];
+        const sizes = [];
+        const phases = [];
+        const phaseSecondaries = [];
+
+        const color = new THREE.Color();
+
+        for (let i = 0; i < totalPoints; i++) {
+          const [x, y, z] = [rand(25, -25), 0, rand(15, -150)];
+          positions.push(x, y, z);
+
+          color.set(randChoise(["#f1d4d4", "#f1f6f9", "#eeeeee", "#f1f1e8"]));
+          colors.push(color.r, color.g, color.b);
+          phases.push(rand(1000));
+          phaseSecondaries.push(rand(1000));
+          sizes.push(rand(4, 2));
+        }
+
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+        geometry.setAttribute("phase", new THREE.Float32BufferAttribute(phases, 1));
+        geometry.setAttribute("phaseSecondary", new THREE.Float32BufferAttribute(phaseSecondaries, 1));
+
+        const mesh = new THREE.Points(geometry, shaderMaterial);
+        scene.add(mesh);
+      });
+    }
+
+    function addPlane(scene, uniforms, totalPoints) {
+      const vertexShader = `
+        attribute float size;
+        attribute vec3 customColor;
+        varying vec3 vColor;
+        void main() {
+          vColor = customColor;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `;
+
+      const fragmentShader = `
+        uniform vec3 color;
+        uniform sampler2D pointTexture;
+        varying vec3 vColor;
+        void main() {
+          gl_FragColor = vec4(vColor, 1.0);
+          gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
+        }
+      `;
+
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          ...uniforms,
+          pointTexture: { value: sparkTexture },
+        },
+        vertexShader,
+        fragmentShader,
+        blending: THREE.AdditiveBlending,
+        depthTest: false,
+        transparent: true,
+        vertexColors: true,
+      });
+
+      const geometry = new THREE.BufferGeometry();
+      const positions = [];
+      const colors = [];
+      const sizes = [];
+      const color = new THREE.Color();
+
+      for (let i = 0; i < totalPoints; i++) {
+        const [x, y, z] = [rand(-25, 25), 0, rand(-150, 15)];
+        positions.push(x, y, z);
+
+        color.set(randChoise(["#93abd3", "#f2f4c0", "#9ddfd3"]));
+        colors.push(color.r, color.g, color.b);
+        sizes.push(1);
+      }
+
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage)
+      );
+      geometry.setAttribute(
+        "customColor",
+        new THREE.Float32BufferAttribute(colors, 3)
+      );
+      geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+
+      const plane = new THREE.Points(geometry, shaderMaterial);
+      plane.position.y = -8;
+      scene.add(plane);
+    }
+
+    function addListeners(camera, renderer, composer) {
+      window.addEventListener(
+        "resize",
+        () => {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          camera.aspect = width / height;
+          updateCameraForScreen(camera);
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+          composer.setSize(width, height);
+        },
+        false
+      );
+    }
+  </script>
+</body>
+</html>
