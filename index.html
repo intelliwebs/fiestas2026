@@ -9,8 +9,7 @@
   <title>Felices Fiestas 2026-2027</title>
   <meta name="description" content="Son los deseos de Carlos Molina y Familia.">
 
-
-<!-- Etiquetas Open Graph para vista previa en WhatsApp, Facebook y redes sociales -->
+  <!-- Etiquetas Open Graph para vista previa en WhatsApp, Facebook y redes sociales -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Felices Fiestas 2026-2027">
   <meta property="og:description" content="Son los deseos de Carlos Molina y Familia.">
@@ -26,8 +25,6 @@
   <meta name="twitter:title" content="Felices Fiestas 2026-2027">
   <meta name="twitter:description" content="Son los deseos de Carlos Molina y Familia.">
   <meta name="twitter:image" content="https://i.postimg.cc/W3Mn21Dj/Bola-navidena-con-Nacimiento-iluminado-CHICA.png">
-
-
   
   <style>
     * {
@@ -45,6 +42,7 @@
       background: #161616;
       color: #c5a880;
       font-family: system-ui, -apple-system, sans-serif;
+      cursor: pointer;
     }
 
     /* Pantalla inicial de selección */
@@ -157,7 +155,6 @@
         0 0 85px 28px rgba(212, 175, 55, 0.45);
     }
 
-    /* Rayos principales de 4 puntas (vertical más largo hacia abajo como estrella guía) */
     .bethlehem-ray-v {
       position: absolute;
       top: -45px;
@@ -196,7 +193,6 @@
       filter: blur(0.6px);
     }
 
-    /* Rayos diagonales secundarios */
     .bethlehem-ray-d1, .bethlehem-ray-d2 {
       position: absolute;
       top: 50%;
@@ -316,7 +312,6 @@
       display: flex;
     }
 
-    /* Cola luminosa tipo cometa detrás del trineo */
     .comet-tail {
       width: clamp(95px, 22vw, 180px);
       height: clamp(12px, 2.5vw, 20px);
@@ -343,7 +338,6 @@
       filter: drop-shadow(0 0 10px rgba(255, 235, 160, 0.85));
     }
 
-    /* Estrellitas dinámicas que deja el trineo al pasar */
     .trail-star {
       position: fixed;
       pointer-events: none;
@@ -352,6 +346,28 @@
       text-shadow: 0 0 6px #ffd700, 0 0 12px #ffffff;
       animation: starFade 1.5s ease-out forwards;
       user-select: none;
+    }
+
+    /* Estrellitas interactivas al tocar la pantalla */
+    .click-star {
+      position: fixed;
+      pointer-events: none;
+      z-index: 25;
+      color: #fff6c2;
+      text-shadow: 0 0 8px #ffd700, 0 0 16px #ffffff;
+      animation: clickStarAnim 1.2s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+      user-select: none;
+    }
+
+    @keyframes clickStarAnim {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(0.4) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--end-x), var(--end-y)) scale(1.3) rotate(180deg);
+      }
     }
 
     @keyframes pulse {
@@ -609,6 +625,37 @@
     document.getElementById("upload").addEventListener("change", uploadAudio, false);
     document.getElementById("btnPlayDefault").addEventListener("click", loadDefaultAudio);
 
+    /* --- EFECTO DE ESTRELLITAS AL TOCAR LA PANTALLA --- */
+    window.addEventListener("pointerdown", (e) => {
+      // Ignorar si se hace clic dentro del menú flotante inicial para no estorbar los botones
+      if (e.target.closest('#overlay')) return;
+
+      const symbols = ["✦", "✧", "⋆", "✨", "★"];
+      const count = 7; // Cantidad de estrellitas por toque
+
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement("span");
+        star.className = "click-star";
+        star.textContent = randChoise(symbols);
+
+        const posX = e.clientX + rand(-15, 15);
+        const posY = e.clientY + rand(-15, 15);
+        
+        star.style.left = `${posX}px`;
+        star.style.top = `${posY}px`;
+        star.style.fontSize = `${rand(10, 20)}px`;
+
+        // Distancia y dirección de caída aleatoria hacia abajo
+        const endX = rand(-60, 60);
+        const endY = rand(40, 110);
+        star.style.setProperty("--end-x", `${endX}px`);
+        star.style.setProperty("--end-y", `${endY}px`);
+
+        document.body.appendChild(star);
+        setTimeout(() => star.remove(), 1200);
+      }
+    });
+
     function resumeAudioContext() {
       if (listener.context && listener.context.state === "suspended") {
         listener.context.resume();
@@ -729,8 +776,7 @@
       const overlay = document.getElementById("overlay");
       overlay.innerHTML = '<div class="text-loading">Cargando música... 🎄✨</div>';
 
-      //const audioUrl = "https://raw.githack.com/carlosmolina2024/musica-mp3/main/David%20Garrett%20-%20Viva%20La%20Vida.mp3";
-     const audioUrl = "https://raw.githack.com/intelliwebs/mp3/main/Bobby%20Helms%20-%20Jingle%20Bell%20Rock%20(Lyrics).mp3";
+      const audioUrl = "https://raw.githack.com/intelliwebs/mp3/main/Bobby%20Helms%20-%20Jingle%20Bell%20Rock%20(Lyrics).mp3";
       const loader = new THREE.AudioLoader();
       loader.setCrossOrigin("anonymous");
 
