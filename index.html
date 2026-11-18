@@ -103,13 +103,22 @@
 
     .greeting {
       margin-top: 14px;
-      font-size: clamp(0.82rem, 3.4vw, 0.92rem);
+      font-size: clamp(0.84rem, 3.4vw, 0.95rem);
       color: #d4af37;
-      line-height: 1.4;
+      line-height: 1.45;
       font-style: italic;
       border-top: 1px solid rgba(197, 168, 128, 0.3);
       padding-top: 12px;
       font-family: 'Georgia', serif;
+    }
+
+    .greeting-author {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      font-style: normal;
+      color: #c5a880;
+      letter-spacing: 0.5px;
     }
 
     .text-loading {
@@ -333,7 +342,7 @@
     /* Mensaje en la parte inferior */
     #bottom-greeting {
       position: fixed;
-      bottom: clamp(18px, 4vh, 32px);
+      bottom: clamp(16px, 3.8vh, 28px);
       left: 0;
       right: 0;
       z-index: 18;
@@ -343,7 +352,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 0 16px;
+      padding: 0 20px;
     }
 
     #bottom-greeting.active {
@@ -351,9 +360,21 @@
       animation: fadeIn 1.6s ease forwards;
     }
 
+    .bottom-phrase {
+      font-family: 'Georgia', serif;
+      font-size: clamp(0.95rem, 3.4vw, 1.2rem);
+      font-style: italic;
+      color: #fff6d6;
+      max-width: 640px;
+      line-height: 1.35;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95),
+                   0 0 12px rgba(212, 175, 55, 0.75);
+    }
+
     .bottom-main {
       font-family: 'Georgia', serif;
-      font-size: clamp(1.35rem, 5vw, 2.1rem);
+      font-size: clamp(1.3rem, 4.8vw, 1.95rem);
       font-weight: bold;
       letter-spacing: 3px;
       color: #fffaed;
@@ -364,9 +385,9 @@
     }
 
     .bottom-sub {
-      margin-top: 5px;
+      margin-top: 4px;
       font-family: 'Georgia', serif;
-      font-size: clamp(0.78rem, 2.8vw, 0.98rem);
+      font-size: clamp(0.76rem, 2.7vw, 0.95rem);
       font-style: italic;
       letter-spacing: 1px;
       color: #e6c88a;
@@ -544,7 +565,8 @@
     </ul>
     <div id="status-msg" class="error-msg"></div>
     <div class="greeting">
-      Carlos Molina y familia, le desean muy felices fiestas 🥂✨
+      <span id="overlay-random-phrase"></span> 🥂✨
+      <span class="greeting-author">— Carlos Molina y Flia.</span>
     </div>
   </div>
 
@@ -599,6 +621,7 @@
 
   <!-- Mensaje en la parte inferior -->
   <div id="bottom-greeting">
+    <div class="bottom-phrase" id="bottom-random-phrase"></div>
     <div class="bottom-main">FELICES FIESTAS</div>
     <div class="bottom-sub">Carlos Molina y Flia.</div>
   </div>
@@ -613,6 +636,25 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
   <script>
+    /* 10 Frases cortas de saludos de fin de año */
+    const frasesFinDeAno = [
+      "Que la paz, el amor y la alegría iluminen tu hogar estas fiestas.",
+      "Brindemos por los logros de hoy y los sueños del año que comienza.",
+      "Que cada día del nuevo año esté lleno de salud, unión y esperanza.",
+      "Felices fiestas y un próspero Año Nuevo colmado de bendiciones.",
+      "Que la magia de estas fiestas renueve nuestras fuerzas y alegrías.",
+      "Por un año nuevo lleno de nuevos comienzos, éxitos y momentos inolvidables.",
+      "Que nunca falten motivos para sonreír, compartir y agradecer.",
+      "Te deseamos unas fiestas llenas de luz, calidez y buenos deseos.",
+      "Que el próximo año traiga paz a tu corazón y prosperidad a tu camino.",
+      "Celebremos lo vivido y recibamos con ilusión todo lo bueno que vendrá."
+    ];
+
+    /* Seleccionar una frase al azar al iniciar */
+    const fraseElegida = frasesFinDeAno[Math.floor(Math.random() * frasesFinDeAno.length)];
+    document.getElementById("overlay-random-phrase").textContent = `"${fraseElegida}"`;
+    document.getElementById("bottom-random-phrase").textContent = `"${fraseElegida}"`;
+
     const { PI, sin, cos } = Math;
     const TAU = 2 * PI;
 
@@ -655,7 +697,7 @@
     /* Control de reproducción del botón flotante */
     const audioControlBtn = document.getElementById("audio-control-btn");
     audioControlBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Evitar que dispare las estrellas de la pantalla
+      e.stopPropagation();
       if (audio.isPlaying) {
         audio.pause();
         audioControlBtn.textContent = "▶";
@@ -727,7 +769,6 @@
 
     /* --- EFECTO DE ESTRELLITAS AL TOCAR LA PANTALLA --- */
     window.addEventListener("pointerdown", (e) => {
-      // Ignorar si se hace clic en el menú inicial o en el botón de audio
       if (e.target.closest('#overlay') || e.target.closest('#audio-control-btn')) return;
 
       const symbols = ["✦", "✧", "⋆", "✨", "★"];
