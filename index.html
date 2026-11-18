@@ -124,6 +124,40 @@
       margin-top: 8px;
     }
 
+    /* BOTÓN FLOTANTE DE AUDIO (PLAY / PAUSE) */
+    #audio-control-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 30;
+      width: 44px;
+      height: 44px;
+      background: rgba(22, 22, 22, 0.85);
+      border: 1px solid #c5a880;
+      border-radius: 50%;
+      color: #c5a880;
+      font-size: 1.1rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    #audio-control-btn.active {
+      display: flex;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    #audio-control-btn:hover {
+      background-color: #c5a880;
+      color: #161616;
+      box-shadow: 0 0 20px rgba(197, 168, 128, 0.6);
+      transform: scale(1.08);
+    }
+
     /* ESTRELLA DE BELÉN EN EL CIELO */
     #star-of-bethlehem {
       position: fixed;
@@ -296,6 +330,50 @@
               drop-shadow(0 0 8px rgba(212, 175, 55, 0.9));
     }
 
+    /* Mensaje en la parte inferior */
+    #bottom-greeting {
+      position: fixed;
+      bottom: clamp(18px, 4vh, 32px);
+      left: 0;
+      right: 0;
+      z-index: 18;
+      pointer-events: none;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    #bottom-greeting.active {
+      display: flex;
+      animation: fadeIn 1.6s ease forwards;
+    }
+
+    .bottom-main {
+      font-family: 'Georgia', serif;
+      font-size: clamp(1.35rem, 5vw, 2.1rem);
+      font-weight: bold;
+      letter-spacing: 3px;
+      color: #fffaed;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95),
+                   0 0 14px rgba(212, 175, 55, 0.9),
+                   0 0 28px rgba(255, 215, 0, 0.5);
+    }
+
+    .bottom-sub {
+      margin-top: 5px;
+      font-family: 'Georgia', serif;
+      font-size: clamp(0.78rem, 2.8vw, 0.98rem);
+      font-style: italic;
+      letter-spacing: 1px;
+      color: #e6c88a;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95),
+                   0 0 10px rgba(212, 175, 55, 0.65);
+    }
+
     /* Trineo pasando por delante de la luna */
     #sleigh-container {
       position: fixed;
@@ -443,6 +521,9 @@
 </head>
 <body>
 
+  <!-- Botón flotante Play / Pause -->
+  <button id="audio-control-btn" title="Reproducir / Pausar Música">⏸</button>
+
   <!-- Menú inicial -->
   <div id="overlay">
     <ul>
@@ -516,6 +597,12 @@
     </div>
   </div>
 
+  <!-- Mensaje en la parte inferior -->
+  <div id="bottom-greeting">
+    <div class="bottom-main">FELICES FIESTAS</div>
+    <div class="bottom-sub">Carlos Molina y Flia.</div>
+  </div>
+
   <!-- Librerías Three.js y Post-procesado -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.115.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -564,6 +651,19 @@
 
     const listener = new THREE.AudioListener();
     const audio = new THREE.Audio(listener);
+
+    /* Control de reproducción del botón flotante */
+    const audioControlBtn = document.getElementById("audio-control-btn");
+    audioControlBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Evitar que dispare las estrellas de la pantalla
+      if (audio.isPlaying) {
+        audio.pause();
+        audioControlBtn.textContent = "▶";
+      } else {
+        audio.play();
+        audioControlBtn.textContent = "⏸";
+      }
+    });
 
     function createGlowTexture() {
       const canvas = document.createElement('canvas');
@@ -627,11 +727,11 @@
 
     /* --- EFECTO DE ESTRELLITAS AL TOCAR LA PANTALLA --- */
     window.addEventListener("pointerdown", (e) => {
-      // Ignorar si se hace clic dentro del menú flotante inicial para no estorbar los botones
-      if (e.target.closest('#overlay')) return;
+      // Ignorar si se hace clic en el menú inicial o en el botón de audio
+      if (e.target.closest('#overlay') || e.target.closest('#audio-control-btn')) return;
 
       const symbols = ["✦", "✧", "⋆", "✨", "★"];
-      const count = 7; // Cantidad de estrellitas por toque
+      const count = 7;
 
       for (let i = 0; i < count; i++) {
         const star = document.createElement("span");
@@ -645,7 +745,6 @@
         star.style.top = `${posY}px`;
         star.style.fontSize = `${rand(10, 20)}px`;
 
-        // Distancia y dirección de caída aleatoria hacia abajo
         const endX = rand(-60, 60);
         const endY = rand(40, 110);
         star.style.setProperty("--end-x", `${endX}px`);
@@ -706,9 +805,11 @@
       if (overlay) overlay.remove();
 
       document.getElementById("hud-festive").classList.add("active");
+      document.getElementById("bottom-greeting").classList.add("active");
       document.getElementById("star-of-bethlehem").classList.add("active");
       document.getElementById("moon-container").classList.add("active");
       document.getElementById("sleigh-container").classList.add("active");
+      audioControlBtn.classList.add("active");
       startSleighStars();
 
       scene = new THREE.Scene();
